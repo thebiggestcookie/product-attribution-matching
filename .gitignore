@@ -1,0 +1,15 @@
+echo "
+# Python
+__pycache__/
+*.py[cod]
+venv/
+*.db
+
+# Node
+node_modules/
+npm-debug.log
+build/
+
+# macOS
+.DS_Store
+" > .gitignore
