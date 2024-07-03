@@ -15,10 +15,9 @@ services:
     plan: free
     region: oregon
 
-  - type: web
+  - type: static
     name: product-attribution-frontend
     env: static
-    repo: https://github.com/thebiggestcookie/product-attribution-matching
     buildCommand: |
       cd frontend
       npm install
@@ -32,6 +31,5 @@ services:
       - key: NODE_VERSION
         value: 16.15.0
     plan: free
-    region: oregon
 
 version: "1"
