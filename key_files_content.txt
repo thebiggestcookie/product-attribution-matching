@@ -1,0 +1,252 @@
+Key Files Content
+==================
+=== Content of backend/app.py ===
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_cors import CORS
+import os
+
+app = Flask(__name__)
+CORS(app)
+
+# Configure SQLite database
+basedir = os.path.abspath(os.path.dirname(__file__))
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'products.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+class Product(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    attributes = db.relationship('Attribute', backref='product', lazy=True)
+
+class Attribute(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+    value = db.Column(db.String(100))
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+
+@app.route('/api/products', methods=['GET'])
+def get_products():
+    products = Product.query.all()
+    return jsonify([{
+        'id': p.id,
+        'name': p.name,
+        'category': p.category,
+        'attributes': [{
+            'id': a.id,
+            'name': a.name,
+            'value': a.value
+        } for a in p.attributes]
+    } for p in products])
+
+@app.route('/api/products/<int:product_id>/attributes/<int:attribute_id>', methods=['PUT'])
+def update_attribute(product_id, attribute_id):
+    attribute = Attribute.query.get_or_404(attribute_id)
+    if attribute.product_id != product_id:
+        return jsonify({'error': 'Attribute does not belong to the specified product'}), 400
+    
+    data = request.json
+    attribute.value = data.get('value', attribute.value)
+    db.session.commit()
+    return jsonify({'message': 'Attribute updated successfully'})
+
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        
+        # Add sample data if the database is empty
+        if not Product.query.first():
+            # Electronics category
+            laptop = Product(name='Laptop XYZ', category='Electronics')
+            db.session.add(laptop)
+            db.session.add(Attribute(name='Brand', value='TechCo', product=laptop))
+            db.session.add(Attribute(name='Screen Size', value='15.6 inches', product=laptop))
+            db.session.add(Attribute(name='RAM', value='8GB', product=laptop))
+
+            # Clothing category
+            shirt = Product(name='Cotton T-Shirt', category='Clothing')
+            db.session.add(shirt)
+            db.session.add(Attribute(name='Size', value='M', product=shirt))
+            db.session.add(Attribute(name='Color', value='Blue', product=shirt))
+            db.session.add(Attribute(name='Material', value='100% Cotton', product=shirt))
+
+            # Home Goods category
+            pillow = Product(name='Memory Foam Pillow', category='Home Goods')
+            db.session.add(pillow)
+            db.session.add(Attribute(name='Size', value='Standard', product=pillow))
+            db.session.add(Attribute(name='Firmness', value='Medium', product=pillow))
+            db.session.add(Attribute(name='Material', value='Memory Foam', product=pillow))
+
+            db.session.commit()
+
+    app.run(debug=True)
+
+
+
+=== Content of backend/requirements.txt ===
+blinker==1.8.2
+click==8.1.7
+Flask==3.0.3
+Flask-Cors==4.0.1
+Flask-SQLAlchemy==3.1.1
+itsdangerous==2.2.0
+Jinja2==3.1.4
+MarkupSafe==2.1.5
+SQLAlchemy==2.0.31
+typing_extensions==4.12.2
+Werkzeug==3.0.3
+gunicorn==20.1.0
+
+
+
+=== Content of frontend/src/App.js ===
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products`);
+      setProducts(response.data);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
+  };
+
+  const handleProductSelect = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleAttributeUpdate = async (productId, attributeId, newValue) => {
+    try {
+      await axios.put(, {
+        value: newValue
+      });
+      fetchProducts();
+    } catch (error) {
+      console.error('Error updating attribute:', error);
+    }
+  };
+
+  return (
+    <div className="App">
+      <h1>Product Attribution Matching Tool</h1>
+      <div style={{ display: 'flex' }}>
+        <div style={{ width: '30%', marginRight: '20px' }}>
+          <h2>Products</h2>
+          <ul>
+            {products.map(product => (
+              <li key={product.id} onClick={() => handleProductSelect(product)}>
+                {product.name} ({product.category})
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div style={{ width: '70%' }}>
+          <h2>Product Details</h2>
+          {selectedProduct ? (
+            <div>
+              <h3>{selectedProduct.name}</h3>
+              <p>Category: {selectedProduct.category}</p>
+              <h4>Attributes:</h4>
+              <ul>
+                {selectedProduct.attributes.map(attr => (
+                  <li key={attr.id}>
+                    {attr.name}: 
+                    <input 
+                      value={attr.value} 
+                      onChange={(e) => handleAttributeUpdate(selectedProduct.id, attr.id, e.target.value)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <p>Select a product to view details</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
+
+
+
+=== Content of frontend/package.json ===
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.7.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+  }
+}
+
+
+
+=== Content of render.yaml ===
+services:
+  - type: web
+    name: product-attribution-backend
+    env: python
+    buildCommand: cd backend && pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: cd backend && gunicorn app:app
+ - type: web
+    name: product-attribution-frontend
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: ./frontend/build
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+
+
+File not found: .env
