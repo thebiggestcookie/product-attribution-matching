@@ -24,7 +24,7 @@ const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products`
 
   const handleAttributeUpdate = async (productId, attributeId, newValue) => {
     try {
-      await axios.put(, {
+      await axios.put(`${process.env.REACT_APP_API_URL}/api/products/${productId}/attributes/${attributeId}`, {
         value: newValue
       });
       fetchProducts();

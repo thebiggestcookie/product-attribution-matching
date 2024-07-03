@@ -4,7 +4,7 @@ services:
     env: python
     buildCommand: cd backend && pip install --upgrade pip && pip install -r requirements.txt
     startCommand: cd backend && gunicorn app:app
- - type: web
+  - type: web
     name: product-attribution-frontend
     env: static
     buildCommand: cd frontend && npm install && npm run build
