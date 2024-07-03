@@ -2,30 +2,15 @@ services:
   - type: web
     name: product-attribution-backend
     env: python
-    buildCommand: |
-      cd backend
-      pip install --upgrade pip
-    startCommand: |
-      cd backend
-      ./start.sh
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.9.0
-      - key: FLASK_ENV
-        value: production
-
+    buildCommand: cd backend && pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: cd backend && gunicorn app:app
   - type: web
     name: product-attribution-frontend
     env: static
-    buildCommand: |
-      cd frontend
-      npm install
-      npm run build
+    buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/build
     routes:
       - type: rewrite
         source: /*
         destination: /index.html
-    envVars:
-      - key: NODE_VERSION
-        value: 16.15.0
+
