@@ -11,7 +11,7 @@ function App() {
 
   const fetchProducts = async () => {
     try {
-const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products`);
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products`);
       setProducts(response.data);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -57,7 +57,7 @@ const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products`
               <ul>
                 {selectedProduct.attributes.map(attr => (
                   <li key={attr.id}>
-                    {attr.name}: 
+                    {attr.name}:
                     <input 
                       value={attr.value} 
                       onChange={(e) => handleAttributeUpdate(selectedProduct.id, attr.id, e.target.value)}
@@ -76,3 +76,4 @@ const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products`
 }
 
 export default App;
+
