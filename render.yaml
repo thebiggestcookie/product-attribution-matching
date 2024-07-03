@@ -5,11 +5,9 @@ services:
     buildCommand: |
       cd backend
       pip install --upgrade pip
-      pip install -r requirements.txt
-      pip install gunicorn
     startCommand: |
       cd backend
-      python -m gunicorn app:app
+      ./start.sh
     envVars:
       - key: PYTHON_VERSION
         value: 3.9.0
