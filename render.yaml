@@ -15,7 +15,7 @@ services:
     plan: free
     region: oregon
 
-  - type: static
+  - type: web
     name: product-attribution-frontend
     env: static
     buildCommand: |
