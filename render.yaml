@@ -12,7 +12,7 @@ services:
         value: 3.9.0
       - key: FLASK_ENV
         value: production
-    plan: free
+    plan: starter
     region: oregon
 
   - type: web
@@ -30,6 +30,5 @@ services:
     envVars:
       - key: NODE_VERSION
         value: 16.15.0
-    plan: free
 
 version: "1"
